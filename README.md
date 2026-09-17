@@ -40,7 +40,7 @@ Swagger permet ensuite de tester toutes les routes depuis le navigateur :
 Executer toute la suite de tests dans Docker :
 
 ```bash
-docker compose --profile test run --rm test
+docker compose --profile test run --rm --build test
 ```
 
 Le resultat attendu est `BUILD SUCCESS` avec `51` tests, aucun echec et aucune
@@ -283,7 +283,7 @@ Le profil Compose `test` construit l'etage Maven, attend que MySQL soit sain,
 puis execute toute la suite :
 
 ```bash
-docker compose --profile test run --rm test
+docker compose --profile test run --rm --build test
 ```
 
 Resultat attendu :

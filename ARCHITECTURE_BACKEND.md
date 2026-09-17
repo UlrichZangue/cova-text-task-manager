@@ -304,7 +304,7 @@ Docker. Les transactions de test sont annulees afin d'isoler les scenarios.
 Commande de reference :
 
 ```bash
-docker compose --profile test run --rm test
+docker compose --profile test run --rm --build test
 ```
 
 ## 12. Architecture Docker

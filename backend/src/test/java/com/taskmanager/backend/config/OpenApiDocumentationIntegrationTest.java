@@ -52,6 +52,7 @@ class OpenApiDocumentationIntegrationTest {
         JsonNode paths = document.get("paths");
         assertTrue(paths.has("/api/auth/register"));
         assertTrue(paths.has("/api/auth/login"));
+        assertTrue(paths.has("/api/users/me"));
         assertTrue(paths.has("/api/tasks"));
         assertTrue(paths.has("/api/tasks/stats"));
         assertTrue(paths.has("/api/tasks/{id}"));
@@ -72,6 +73,11 @@ class OpenApiDocumentationIntegrationTest {
                 .get("post")
                 .get("security");
         assertTrue(createSecurity.get(0).has("bearerAuth"));
+        assertTrue(paths.get("/api/users/me")
+                .get("get")
+                .get("security")
+                .get(0)
+                .has("bearerAuth"));
         assertTrue(paths.get("/api/tasks/{id}")
                 .get("delete")
                 .get("responses")

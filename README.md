@@ -106,12 +106,20 @@ TOKEN=$(curl -sS -X POST http://localhost:8080/api/auth/login \
   }' | jq -r '.token')
 ```
 
+Recuperer le profil associe au token :
+
+```bash
+curl -sS http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ## Routes
 
 | Methode | Route | Auth | Description |
 |---|---|---:|---|
 | `POST` | `/api/auth/register` | non | Creer un utilisateur |
 | `POST` | `/api/auth/login` | non | Obtenir un JWT |
+| `GET` | `/api/users/me` | oui | Recuperer le profil connecte |
 | `POST` | `/api/tasks` | oui | Creer une tache |
 | `GET` | `/api/tasks` | oui | Rechercher et paginer les taches |
 | `GET` | `/api/tasks/stats` | oui | Obtenir les compteurs du dashboard |

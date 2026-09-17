@@ -3,6 +3,55 @@
 Backend REST de gestion personnelle de taches construit avec Spring Boot 4,
 Java 21, MySQL, JWT, Flyway et Docker Compose.
 
+La description detaillee des couches et des flux se trouve dans
+[`ARCHITECTURE_BACKEND.md`](ARCHITECTURE_BACKEND.md).
+
+## Demarrage rapide apres un clone
+
+Cette procedure suffit pour evaluer le backend sur une machine qui possede
+Docker. Java, Maven et MySQL ne doivent pas etre installes localement.
+
+```bash
+git clone https://github.com/UlrichZangue/cova-text-task-manager.git
+cd cova-text-task-manager
+cp .env.example .env
+docker compose up -d --build
+docker compose ps
+```
+
+Le premier build peut prendre quelques minutes, le temps de telecharger les
+images et dependances. Attendre que `backend` et `mysql` affichent l'etat
+`healthy`, puis verifier l'API :
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+Resultat attendu :
+
+```json
+{"status":"UP"}
+```
+
+Swagger permet ensuite de tester toutes les routes depuis le navigateur :
+
+<http://localhost:8080/swagger-ui.html>
+
+Executer toute la suite de tests dans Docker :
+
+```bash
+docker compose --profile test run --rm test
+```
+
+Le resultat attendu est `BUILD SUCCESS` avec `51` tests, aucun echec et aucune
+erreur. Le service `test` attend automatiquement que MySQL soit sain. L'option
+`--rm` supprime le conteneur de test apres son execution.
+
+Les valeurs de `.env.example` sont uniquement destinees a une evaluation
+locale. Elles permettent un premier demarrage immediat. Pour conserver ou
+deployer l'application, remplacer les mots de passe et generer un vrai secret
+JWT avec `openssl rand -base64 48`.
+
 ## Fonctionnalites
 
 - inscription et connexion avec JWT Bearer ;
@@ -18,7 +67,8 @@ Java 21, MySQL, JWT, Flyway et Docker Compose.
 
 ## Prerequis
 
-- Docker Engine avec Docker Compose v2 ;
+- Git ;
+- Docker Engine avec Docker Compose v2, ou Docker Desktop ;
 - `curl` et `jq` pour executer les exemples ;
 - `openssl` pour generer un secret JWT.
 
@@ -236,8 +286,16 @@ puis execute toute la suite :
 docker compose --profile test run --rm test
 ```
 
-La suite couvre 49 scenarios unitaires et d'integration. Les tests HTTP utilisent
-MockMvc, le vrai contexte Spring et MySQL, avec rollback transactionnel.
+Resultat attendu :
+
+```text
+Tests run: 51, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+La suite couvre 51 scenarios unitaires et d'integration. Les tests HTTP utilisent
+MockMvc, le vrai contexte Spring et MySQL, avec rollback transactionnel. Il n'est
+pas necessaire d'installer Maven sur la machine hote.
 
 ## Architecture backend
 
@@ -248,7 +306,7 @@ backend/src/main/java/com/taskmanager/backend
 |-- exception/     contrat et gestion globale des erreurs
 |-- security/      JWT, filtre et UserDetailsService
 |-- task/          controleur, service, DTO, mapping et repository
-`-- user/          entite et repository utilisateur
+`-- user/          profil, service, DTO, entite et repository
 ```
 
 Flyway gere le schema dans `backend/src/main/resources/db/migration`. Hibernate
@@ -268,3 +326,23 @@ utilise `ddl-auto=validate` et ne modifie pas automatiquement la base.
 
 Pour un deploiement, utiliser un gestionnaire de secrets, des mots de passe MySQL
 uniques, HTTPS et une origine CORS correspondant exactement au frontend.
+
+## Depannage
+
+Afficher les journaux si un service ne devient pas `healthy` :
+
+```bash
+docker compose logs --tail=200 backend mysql
+```
+
+Si les ports `8080` ou `3306` sont deja utilises, arreter le service local qui
+les occupe ou modifier le port hote correspondant dans `docker-compose.yml`.
+
+Recreer une installation locale complete, y compris la base de donnees :
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+Attention : l'option `-v` supprime definitivement les donnees du volume MySQL.

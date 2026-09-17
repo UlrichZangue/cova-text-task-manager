@@ -50,6 +50,8 @@ Ce document transforme le cahier des charges en une feuille de route technique p
 
 ## 3. Etape 2 - Finaliser l'inscription et les DTO
 
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
+
 ### Fichiers concernes
 
 - `auth/dto/RegisterRequest.java`
@@ -81,6 +83,8 @@ Ce document transforme le cahier des charges en une feuille de route technique p
 - aucun mot de passe ou hash n'apparait dans la reponse.
 
 ## 4. Etape 3 - Implementer la connexion JWT
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Travaux
 
@@ -114,6 +118,8 @@ Content-Type: application/json
 
 ## 5. Etape 4 - Uniformiser les erreurs
 
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
+
 ### Fichiers concernes
 
 - `exception/ErrorResponse.java`
@@ -138,6 +144,9 @@ Content-Type: application/json
 ### Validation
 
 Toutes les erreurs de l'API doivent avoir le meme format JSON et le bon code HTTP.
+
+Validation realisee avec 15 tests automatises et des appels HTTP sur le conteneur
+reconstruit : `400`, `401`, `403`, `404` et `405` utilisent le contrat commun.
 
 ## 6. Etape 5 - Creer les DTO et le mapping des taches
 

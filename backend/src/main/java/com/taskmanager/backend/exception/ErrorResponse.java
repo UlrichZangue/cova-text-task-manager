@@ -2,6 +2,7 @@ package com.taskmanager.backend.exception;
 
 import java.time.Instant;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 public class ErrorResponse {
 
@@ -25,6 +26,29 @@ public class ErrorResponse {
         this.message = message;
         this.path = path;
         this.fieldErrors = fieldErrors;
+    }
+
+    public static ErrorResponse of(
+            HttpStatus status,
+            String message,
+            String path
+    ) {
+        return of(status, message, path, Map.of());
+    }
+
+    public static ErrorResponse of(
+            HttpStatus status,
+            String message,
+            String path,
+            Map<String, String> fieldErrors
+    ) {
+        return new ErrorResponse(
+                status.value(),
+                status.name(),
+                message,
+                path,
+                fieldErrors
+        );
     }
 
     public Instant getTimestamp() {

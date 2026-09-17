@@ -41,6 +41,10 @@ public class JwtService {
                 .compact();
     }
 
+    public long getExpirationSeconds() {
+        return expiration / 1000;
+    }
+
     public String extractEmail(String token) {
 
         return extractAllClaims(token)

@@ -1,9 +1,13 @@
 package com.taskmanager.backend.auth.service;
 
+import com.taskmanager.backend.auth.dto.AuthResponse;
+import com.taskmanager.backend.auth.dto.LoginRequest;
 import com.taskmanager.backend.auth.dto.RegisterRequest;
 import com.taskmanager.backend.auth.dto.RegisterResponse;
 import com.taskmanager.backend.exception.BadRequestException;
 import com.taskmanager.backend.exception.ConflictException;
+import com.taskmanager.backend.exception.UnauthorizedException;
+import com.taskmanager.backend.security.JwtService;
 import com.taskmanager.backend.user.entity.User;
 import com.taskmanager.backend.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +17,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.UUID;
@@ -32,11 +40,22 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private JwtService jwtService;
+
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder);
+        authService = new AuthService(
+                userRepository,
+                passwordEncoder,
+                authenticationManager,
+                jwtService
+        );
     }
 
     @Test
@@ -116,6 +135,47 @@ class AuthServiceTest {
         assertThrows(ConflictException.class, () -> authService.register(request));
     }
 
+    @Test
+    void loginAuthenticatesNormalizedEmailAndReturnsToken() {
+        LoginRequest request = loginRequest(
+                " Alice@Example.COM ",
+                "Password123!"
+        );
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        when(authenticationManager.authenticate(
+                org.mockito.ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)
+        )).thenReturn(authentication);
+        when(jwtService.generateToken("alice@example.com")).thenReturn("signed-token");
+        when(jwtService.getExpirationSeconds()).thenReturn(86400L);
+
+        AuthResponse response = authService.login(request);
+
+        ArgumentCaptor<UsernamePasswordAuthenticationToken> authenticationCaptor =
+                ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+        verify(authenticationManager).authenticate(authenticationCaptor.capture());
+
+        assertEquals("alice@example.com", authenticationCaptor.getValue().getPrincipal());
+        assertEquals("Password123!", authenticationCaptor.getValue().getCredentials());
+        assertEquals("signed-token", response.getToken());
+        assertEquals("Bearer", response.getTokenType());
+        assertEquals(86400L, response.getExpiresIn());
+    }
+
+    @Test
+    void loginRejectsInvalidCredentialsWithoutGeneratingToken() {
+        LoginRequest request = loginRequest(
+                "alice@example.com",
+                "WrongPassword123!"
+        );
+        when(authenticationManager.authenticate(
+                org.mockito.ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)
+        )).thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(UnauthorizedException.class, () -> authService.login(request));
+
+        verify(jwtService, never()).generateToken(org.mockito.ArgumentMatchers.anyString());
+    }
+
     private RegisterRequest request(
             String name,
             String email,
@@ -127,6 +187,13 @@ class AuthServiceTest {
         request.setEmail(email);
         request.setPassword(password);
         request.setConfirmPassword(confirmPassword);
+        return request;
+    }
+
+    private LoginRequest loginRequest(String email, String password) {
+        LoginRequest request = new LoginRequest();
+        request.setEmail(email);
+        request.setPassword(password);
         return request;
     }
 }

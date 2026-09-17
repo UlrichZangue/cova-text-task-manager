@@ -150,6 +150,8 @@ reconstruit : `400`, `401`, `403`, `404` et `405` utilisent le contrat commun.
 
 ## 6. Etape 5 - Creer les DTO et le mapping des taches
 
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
+
 ### Fichiers a creer
 
 ```text
@@ -179,7 +181,13 @@ task/mapper/TaskMapper.java
 - un titre vide ou trop long retourne `400` ;
 - les valeurs d'enumeration invalides retournent une erreur explicite.
 
+Le DTO de sortie n'expose ni l'utilisateur ni les metadonnees de suppression. Le
+mapper applique `TODO` et `MEDIUM` a la creation, et preserve ces valeurs lors
+d'une mise a jour lorsqu'elles sont omises.
+
 ## 7. Etape 6 - Implementer le CRUD securise des taches
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Fichiers a creer
 
@@ -214,7 +222,13 @@ task/controller/TaskController.java
 - un identifiant inconnu retourne `404` ;
 - une tache supprimee ne reapparait pas dans la liste ni dans la recherche.
 
+Validation realisee avec 29 tests automatises et un scenario HTTP complet a deux
+utilisateurs : creation `201`, lecture et modification `200`, acces croise `404`,
+suppression `204`, puis lecture de la tache supprimee `404`.
+
 ## 8. Etape 7 - Ajouter recherche, filtres, tri et pagination
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Contrat recommande
 
@@ -239,7 +253,13 @@ GET /api/tasks?search=rapport&status=TODO&priority=HIGH&page=0&size=10&sort=crea
 - les metadonnees `page`, `size`, `totalElements` et `totalPages` sont exactes ;
 - aucune recherche ne retourne les taches d'un autre utilisateur.
 
+Validation realisee avec 30 tests automatises et un scenario HTTP sur MySQL :
+recherche insensible a la casse dans le titre et la description, filtres combines,
+pagination, tri en liste blanche, limite de 100 elements et isolation utilisateur.
+
 ## 9. Etape 8 - Ajouter les statistiques du dashboard
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Route recommandee
 
@@ -260,7 +280,13 @@ GET /api/tasks/stats
 
 Les comptes doivent etre filtres par utilisateur et ignorer les taches supprimees.
 
+Validation realisee avec 32 tests automatises et un scenario HTTP sur MySQL :
+comptage par statut, exclusion des taches supprimees, isolation entre utilisateurs,
+reponse a zero pour un compte vide et protection JWT de la route.
+
 ## 10. Etape 9 - Completer la configuration de securite
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Travaux
 
@@ -279,7 +305,18 @@ Le cahier des charges mentionne a la fois un cookie HttpOnly et l'en-tete `Autho
 - mobile : token Bearer dans l'en-tete ;
 - web : cookie `HttpOnly`, `Secure`, `SameSite` gere par le backend, ou Bearer si ce choix est explicitement assume.
 
+Convention retenue pour cette API : JWT Bearer dans l'en-tete `Authorization` pour
+les clients web et mobile. Aucun cookie d'authentification ni aucune session HTTP
+n'est utilise ; CORS n'autorise donc pas les credentials et limite explicitement
+les origines, methodes et en-tetes acceptes.
+
+Validation realisee avec 39 tests automatises et des controles HTTP : origine CORS
+autorisee et origine inconnue, en-tete absent, schema Basic, JWT invalide, route
+publique, secret court ou absent et echec explicite de Compose sans `JWT_SECRET`.
+
 ## 11. Etape 10 - Construire une vraie suite de tests
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Tests unitaires
 
@@ -304,7 +341,15 @@ Utiliser de preference Testcontainers avec MySQL afin de tester le meme moteur q
 - avoir au moins un test positif et un test negatif par route ;
 - ne plus se limiter au seul `contextLoads()`.
 
+La suite compte 48 tests. Les tests d'integration MockMvc utilisent le vrai contexte
+Spring et MySQL dans Docker, avec rollback transactionnel. Ils couvrent inscription,
+connexion, CRUD, propriete des taches, suppression logique, recherche, filtres,
+pagination, statistiques, erreurs structurees, CORS et JWT absent, invalide ou expire.
+Une verification apres execution confirme qu'aucune donnee de test ne reste en base.
+
 ## 12. Etape 11 - Documenter l'API
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 1. Ajouter titres, descriptions, exemples et codes de reponse OpenAPI.
 2. Declarer l'authentification Bearer sur les routes `/api/tasks/**`.
@@ -312,7 +357,15 @@ Utiliser de preference Testcontainers avec MySQL afin de tester le meme moteur q
 4. Ajouter dans le `README.md` : prerequis, variables d'environnement, commandes Docker, URL Swagger et exemples `curl`.
 5. Fournir un fichier `.env.example` sans secret reel.
 
+Le `README.md` racine documente les prerequis, variables, commandes Docker,
+architecture, securite, erreurs, tests et exemples `curl`. OpenAPI decrit les
+routes d'authentification et de taches, leurs parametres, codes de reponse,
+exemples de DTO et le schema JWT Bearer. Le contrat est verrouille par un test
+d'integration et la suite complete compte 49 tests reussis.
+
 ## 13. Etape 12 - Finaliser Docker et l'automatisation
+
+**Statut : terminee et validee avec Docker le 17 septembre 2026.**
 
 ### Ameliorations Docker
 
@@ -322,6 +375,12 @@ Utiliser de preference Testcontainers avec MySQL afin de tester le meme moteur q
 4. Ajouter `SPRING_PROFILES_ACTIVE` et des profils `dev`, `test` et `prod`.
 5. Retirer l'exposition publique du port MySQL lorsqu'elle n'est pas necessaire.
 6. Ajouter des limites et options de logs si l'environnement cible le requiert.
+
+La livraison conserve le build multi-stage, execute l'application avec un
+utilisateur non-root, expose un healthcheck HTTP Actuator et fournit un service
+Compose `test`. Le port MySQL est lie uniquement a `127.0.0.1`. Les options de
+logs et profils Spring restent a adapter a l'infrastructure cible, car elles ne
+sont pas necessaires au deploiement Docker local demande.
 
 ### Commandes de verification
 
@@ -336,15 +395,8 @@ docker compose up -d
 docker compose ps
 docker compose logs --tail=100 backend
 
-# Executer les tests Maven dans l'etage de build
-docker build --target build -t task-manager-backend-build ./backend
-docker run --rm --network cova-test-task-manager_default \
-  -e SPRING_DATASOURCE_URL='jdbc:mysql://mysql:3306/task_manager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC' \
-  -e SPRING_DATASOURCE_USERNAME=task_user \
-  -e SPRING_DATASOURCE_PASSWORD=task_password \
-  -e JWT_SECRET='a-remplacer-par-un-secret-long-et-aleatoire' \
-  -e JWT_EXPIRATION=86400000 \
-  task-manager-backend-build mvn test
+# Executer les tests dans le service Compose dedie
+docker compose --profile test run --rm test
 ```
 
 ## 14. Ordre de livraison conseille

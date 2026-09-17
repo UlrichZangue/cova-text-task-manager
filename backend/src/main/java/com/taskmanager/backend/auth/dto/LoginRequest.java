@@ -3,9 +3,12 @@ package com.taskmanager.backend.auth.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "User credentials")
 public class LoginRequest {
 
+    @Schema(example = "alice@example.com")
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     @Size(max = 255, message = "Email must not exceed 255 characters")
@@ -13,6 +16,7 @@ public class LoginRequest {
 
     @NotBlank(message = "Password is required")
     @Size(max = 72, message = "Password must not exceed 72 characters")
+    @Schema(example = "Password123!", format = "password")
     private String password;
 
     public LoginRequest() {

@@ -15,7 +15,8 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Task Manager API")
-                        .version("1.0"))
+                        .version("1.0")
+                        .description("REST API for JWT authentication and personal task management."))
                 .components(new Components().addSecuritySchemes(
                         "bearerAuth",
                         new SecurityScheme()

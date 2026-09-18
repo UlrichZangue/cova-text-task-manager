@@ -1,5 +1,27 @@
 services:
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: task-manager-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: build
+    profiles: ["test"]
+    command: sh -c "npm run format:check && npm run lint && npm test && npm run build"
+
   backend:
     build:
       context: ./backend

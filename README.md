@@ -1,10 +1,12 @@
-# Task Manager API
+# Task Manager
 
-Backend REST de gestion personnelle de taches construit avec Spring Boot 4,
-Java 21, MySQL, JWT, Flyway et Docker Compose.
+Application full-stack de gestion personnelle de taches. Le backend repose sur
+Spring Boot 4, Java 21, MySQL, JWT et Flyway. L'interface utilise React 19,
+TypeScript, Vite et TanStack Query. L'ensemble est lance avec Docker Compose.
 
 La description detaillee des couches et des flux se trouve dans
-[`ARCHITECTURE_BACKEND.md`](ARCHITECTURE_BACKEND.md).
+[`ARCHITECTURE_BACKEND.md`](ARCHITECTURE_BACKEND.md) et
+[`frontend/ARCHITECTURE.md`](frontend/ARCHITECTURE.md).
 
 ## Demarrage rapide apres un clone
 
@@ -20,7 +22,7 @@ docker compose ps
 ```
 
 Le premier build peut prendre quelques minutes, le temps de telecharger les
-images et dependances. Attendre que `backend` et `mysql` affichent l'etat
+images et dependances. Attendre que `frontend`, `backend` et `mysql` affichent l'etat
 `healthy`, puis verifier l'API :
 
 ```bash
@@ -37,11 +39,25 @@ Swagger permet ensuite de tester toutes les routes depuis le navigateur :
 
 <http://localhost:8080/swagger-ui.html>
 
+L'application web est disponible sur :
+
+<http://localhost:3000>
+
 Executer toute la suite de tests dans Docker :
 
 ```bash
 docker compose --profile test run --rm --build test
 ```
+
+Executer les controles du frontend :
+
+```bash
+docker compose --profile test run --rm --build frontend-test
+```
+
+Cette commande verifie le formatage Prettier, execute le lint, les tests et le
+build dans Node.js 20, sans installation locale de Node. Les commandes npm equivalentes sont documentees
+dans `frontend/README.md` pour le developpement local.
 
 Le resultat attendu est `BUILD SUCCESS` avec `51` tests, aucun echec et aucune
 erreur. Le service `test` attend automatiquement que MySQL soit sain. L'option
@@ -64,11 +80,13 @@ JWT avec `openssl rand -base64 48`.
 - erreurs JSON uniformes ;
 - documentation OpenAPI/Swagger ;
 - tests unitaires, integration HTTP et securite sur MySQL.
+- interface responsive avec tableau de bord, recherche, filtres et theme sombre.
 
 ## Prerequis
 
 - Git ;
 - Docker Engine avec Docker Compose v2, ou Docker Desktop ;
+- Node.js 20+ uniquement pour developper le frontend hors Docker ;
 - `curl` et `jq` pour executer les exemples ;
 - `openssl` pour generer un secret JWT.
 
@@ -111,6 +129,7 @@ docker compose ps
 
 Services disponibles :
 
+- application web : <http://localhost:3000>
 - API : <http://localhost:8080>
 - Swagger UI : <http://localhost:8080/swagger-ui.html>
 - contrat OpenAPI JSON : <http://localhost:8080/v3/api-docs>
@@ -296,6 +315,13 @@ BUILD SUCCESS
 La suite couvre 51 scenarios unitaires et d'integration. Les tests HTTP utilisent
 MockMvc, le vrai contexte Spring et MySQL, avec rollback transactionnel. Il n'est
 pas necessaire d'installer Maven sur la machine hote.
+
+Les tests frontend sont documentes dans [`frontend/README.md`](frontend/README.md).
+Ils peuvent etre executes sans Node local avec :
+
+```bash
+docker compose --profile test run --rm --build frontend-test
+```
 
 ## Architecture backend
 

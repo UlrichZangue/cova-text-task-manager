@@ -6,7 +6,8 @@ TypeScript, Vite et TanStack Query. L'ensemble est lance avec Docker Compose.
 
 La description detaillee des couches et des flux se trouve dans
 [`ARCHITECTURE_BACKEND.md`](ARCHITECTURE_BACKEND.md) et
-[`frontend/ARCHITECTURE.md`](frontend/ARCHITECTURE.md).
+[`frontend/ARCHITECTURE.md`](frontend/ARCHITECTURE.md). L'application Flutter
+est documentee dans [`mobile/README.md`](mobile/README.md).
 
 ## Demarrage rapide apres un clone
 
@@ -64,6 +65,16 @@ Executer les controles du frontend :
 docker compose --profile test run --rm --build frontend-test
 ```
 
+Executer les controles de l'application mobile avec Flutter installe :
+
+```bash
+cd mobile
+flutter pub get
+dart format --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
+
 Cette commande verifie le formatage Prettier, execute le lint, les tests et le
 build dans Node.js 20, sans installation locale de Node. Les commandes npm
 equivalentes sont documentees dans `frontend/README.md` pour le developpement
@@ -90,18 +101,40 @@ JWT avec `openssl rand -base64 48`.
 - erreurs JSON uniformes ;
 - documentation OpenAPI/Swagger ;
 - tests unitaires, integration HTTP et securite sur MySQL ;
-- interface responsive avec tableau de bord, recherche, filtres et theme sombre.
+- interface responsive avec tableau de bord, recherche, filtres et theme sombre ;
+- application Flutter Android/iOS synchronisee avec la meme API.
 
 ## Prerequis
 
 - Git ;
 - Docker Engine avec Docker Compose v2, ou Docker Desktop ;
 - Node.js 20+ uniquement pour developper le frontend hors Docker ;
+- Flutter stable uniquement pour developper ou tester l'application mobile ;
 - `curl` et `jq` pour executer les exemples ;
 - `openssl` pour generer un secret JWT.
 
 Java et Maven ne sont pas requis sur la machine hote pour le demarrage ou les
 tests presentes ci-dessous.
+
+## Application mobile
+
+Le dossier `mobile/` contient l'application Flutter bonus demandee dans le
+cahier des charges. Elle propose l'inscription, la connexion JWT, la recherche,
+les filtres et le CRUD complet des taches. Le token est conserve avec
+`flutter_secure_storage` et chaque requete protegee utilise la meme API Spring
+Boot que l'interface web.
+
+Avec l'API Docker deja demarree, lancer sur un emulateur Android :
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+La configuration par defaut cible `http://10.0.2.2:8080`, qui represente la
+machine hote depuis l'emulateur Android. Les commandes pour iOS et pour un
+appareil physique sont detaillees dans [`mobile/README.md`](mobile/README.md).
 
 ## Jeu de donnees de demonstration
 

@@ -1,21 +1,17 @@
 import { Search, SlidersHorizontal } from "lucide-react";
-import type { TaskPriority, TaskStatus } from "../domain/task.types";
+import type { TaskPriority } from "../domain/task.types";
 
 interface TaskFiltersProps {
   search: string;
-  status: TaskStatus | "ALL";
   priority: TaskPriority | "ALL";
   onSearchChange: (value: string) => void;
-  onStatusChange: (value: TaskStatus | "ALL") => void;
   onPriorityChange: (value: TaskPriority | "ALL") => void;
 }
 
 export function TaskFilters({
   search,
-  status,
   priority,
   onSearchChange,
-  onStatusChange,
   onPriorityChange,
 }: TaskFiltersProps) {
   return (
@@ -31,18 +27,6 @@ export function TaskFilters({
       </label>
       <div className="filter-select">
         <SlidersHorizontal aria-hidden="true" />
-        <select
-          aria-label="Filtrer par statut"
-          value={status}
-          onChange={(event) => onStatusChange(event.target.value as TaskStatus | "ALL")}
-        >
-          <option value="ALL">Tous les statuts</option>
-          <option value="TODO">A faire</option>
-          <option value="IN_PROGRESS">En cours</option>
-          <option value="DONE">Terminees</option>
-        </select>
-      </div>
-      <div className="filter-select">
         <select
           aria-label="Filtrer par priorite"
           value={priority}

@@ -1,4 +1,5 @@
-import { CalendarDays, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { CalendarDays, GripVertical, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 import { useState } from "react";
 import { Button } from "../../../shared/components/Button";
 import { cn } from "../../../shared/lib/cn";
@@ -10,16 +11,40 @@ interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  dragging?: boolean;
+  dragHandleProps?: ButtonHTMLAttributes<HTMLButtonElement> & {
+    ref?: Ref<HTMLButtonElement>;
+  };
 }
 
-export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
+export function TaskCard({
+  task,
+  onEdit,
+  onDelete,
+  dragging = false,
+  dragHandleProps,
+}: TaskCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <article className="task-card">
+    <article className={cn("task-card", dragging && "task-card--dragging")}>
       <div className="task-card__top">
-        <span className={cn("status-badge", `status-badge--${task.status.toLowerCase()}`)}>
-          {statusLabels[task.status]}
-        </span>
+        <div className="task-card__state">
+          {dragHandleProps ? (
+            <button
+              className="task-card__drag-handle"
+              type="button"
+              aria-label={`Deplacer ${task.title}`}
+              {...dragHandleProps}
+            >
+              <GripVertical aria-hidden="true" />
+            </button>
+          ) : (
+            <GripVertical className="task-card__grip" aria-hidden="true" />
+          )}
+          <span className={cn("status-badge", `status-badge--${task.status.toLowerCase()}`)}>
+            {statusLabels[task.status]}
+          </span>
+        </div>
         <div className="task-menu">
           <Button
             variant="ghost"

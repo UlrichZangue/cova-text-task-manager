@@ -11,17 +11,17 @@ import type {
   TaskPriority,
   TaskStatus,
 } from "../domain/task.types";
-import { TaskCard } from "./TaskCard";
 import { TaskFilters } from "./TaskFilters";
 import { TaskForm } from "./TaskForm";
-import { useDeleteTask, useTasks } from "./task.queries";
+import { TaskKanban } from "./TaskKanban";
+import { useDeleteTask, useTasks, useUpdateTask } from "./task.queries";
 
 const initialFilters: TaskFiltersValue = {
   search: "",
   status: "ALL",
   priority: "ALL",
   page: 0,
-  size: 9,
+  size: 30,
   sort: "createdAt,desc",
 };
 
@@ -33,6 +33,7 @@ export function TasksPage() {
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const deleteTask = useDeleteTask();
+  const updateTask = useUpdateTask();
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedSearch(filters.search), 350);
@@ -80,6 +81,26 @@ export function TasksPage() {
     }
   };
 
+  const moveTask = async (task: Task, status: TaskStatus) => {
+    try {
+      await updateTask.mutateAsync({
+        id: task.id,
+        input: {
+          title: task.title,
+          description: task.description ?? "",
+          priority: task.priority,
+          dueDate: task.dueDate,
+          status,
+        },
+      });
+      toast.success("Statut de la tache mis a jour");
+      return true;
+    } catch {
+      toast.error("Le deplacement de la tache a echoue.");
+      return false;
+    }
+  };
+
   return (
     <div className="page-content">
       <header className="page-header page-header--actions">
@@ -98,10 +119,8 @@ export function TasksPage() {
       </header>
       <TaskFilters
         search={filters.search}
-        status={filters.status}
         priority={filters.priority}
         onSearchChange={(value) => updateFilter("search", value)}
-        onStatusChange={(value: TaskStatus | "ALL") => updateFilter("status", value)}
         onPriorityChange={(value: TaskPriority | "ALL") => updateFilter("priority", value)}
       />
 
@@ -141,11 +160,13 @@ export function TasksPage() {
         />
       ) : (
         <>
-          <div className="task-grid">
-            {tasks.data!.content.map((task) => (
-              <TaskCard key={task.id} task={task} onEdit={openEdit} onDelete={setDeletingTask} />
-            ))}
-          </div>
+          <TaskKanban
+            tasks={tasks.data!.content}
+            moving={updateTask.isPending}
+            onEdit={openEdit}
+            onDelete={setDeletingTask}
+            onMove={moveTask}
+          />
           <nav className="pagination" aria-label="Pagination">
             <p>
               Page <strong>{tasks.data!.page + 1}</strong> sur{" "}

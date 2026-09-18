@@ -22,8 +22,8 @@ docker compose ps
 ```
 
 Le premier build peut prendre quelques minutes, le temps de telecharger les
-images et dependances. Attendre que `frontend`, `backend` et `mysql` affichent l'etat
-`healthy`, puis verifier l'API :
+images et dependances. Attendre que `frontend`, `backend` et `mysql` affichent
+l'etat `healthy`, puis verifier l'API :
 
 ```bash
 curl http://localhost:8080/actuator/health
@@ -43,6 +43,15 @@ L'application web est disponible sur :
 
 <http://localhost:3000>
 
+Charger ensuite le jeu de demonstration optionnel :
+
+```bash
+./scripts/seed-demo.sh
+```
+
+La procedure complete et les identifiants se trouvent dans la section
+[Jeu de donnees de demonstration](#jeu-de-donnees-de-demonstration).
+
 Executer toute la suite de tests dans Docker :
 
 ```bash
@@ -56,8 +65,9 @@ docker compose --profile test run --rm --build frontend-test
 ```
 
 Cette commande verifie le formatage Prettier, execute le lint, les tests et le
-build dans Node.js 20, sans installation locale de Node. Les commandes npm equivalentes sont documentees
-dans `frontend/README.md` pour le developpement local.
+build dans Node.js 20, sans installation locale de Node. Les commandes npm
+equivalentes sont documentees dans `frontend/README.md` pour le developpement
+local.
 
 Le resultat attendu est `BUILD SUCCESS` avec `51` tests, aucun echec et aucune
 erreur. Le service `test` attend automatiquement que MySQL soit sain. L'option
@@ -79,7 +89,7 @@ JWT avec `openssl rand -base64 48`.
 - statistiques du dashboard ;
 - erreurs JSON uniformes ;
 - documentation OpenAPI/Swagger ;
-- tests unitaires, integration HTTP et securite sur MySQL.
+- tests unitaires, integration HTTP et securite sur MySQL ;
 - interface responsive avec tableau de bord, recherche, filtres et theme sombre.
 
 ## Prerequis
@@ -92,6 +102,72 @@ JWT avec `openssl rand -base64 48`.
 
 Java et Maven ne sont pas requis sur la machine hote pour le demarrage ou les
 tests presentes ci-dessous.
+
+## Jeu de donnees de demonstration
+
+Le script `scripts/seed-demo.sh` cree un compte local et 12 taches variees pour
+tester immediatement le dashboard et les trois colonnes du Kanban.
+
+### 1. Demarrer l'application
+
+Depuis la racine du projet clone :
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+docker compose ps
+```
+
+Attendre que `frontend`, `backend` et `mysql` soient `healthy`. Verifier au
+besoin le backend :
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+### 2. Charger les donnees
+
+Le poste hote doit disposer de `curl` et `jq`. Executer ensuite :
+
+```bash
+./scripts/seed-demo.sh
+```
+
+Resultat attendu lors du premier lancement :
+
+```text
+Jeu de demonstration pret: 12 tache(s) creee(s), 0 deja presente(s).
+Connexion: demo@taskmanager.local / Demo123!
+```
+
+Le script utilise les routes d'inscription, de connexion et de creation des
+taches. Il peut etre relance sans produire de doublons : les 12 titres existants
+sont detectes avant l'insertion.
+
+### 3. Ouvrir le Kanban
+
+Ouvrir <http://localhost:3000/login>, puis utiliser :
+
+| Champ | Valeur |
+|---|---|
+| Email | `demo@taskmanager.local` |
+| Mot de passe | `Demo123!` |
+
+Ces identifiants sont reserves a l'evaluation locale et ne doivent pas etre
+utilises en production.
+
+### Configuration optionnelle
+
+Le script accepte des variables d'environnement pour cibler une autre API ou
+creer un autre compte :
+
+```bash
+API_URL=http://localhost:8080 \
+DEMO_NAME="Compte Demo" \
+DEMO_EMAIL="demo@example.com" \
+DEMO_PASSWORD="Password123!" \
+./scripts/seed-demo.sh
+```
 
 ## Configuration
 
